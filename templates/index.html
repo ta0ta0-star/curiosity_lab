@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー登録フォーム</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .tag-container{
+            border: 1px solid #ccc;
+            padding: 5px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .tag{
+            background-color: #007bff;
+            color:white;
+            padding: 5px;
+            margin: 2px;
+            border-radius: 5px;
+        }
+        .tag button{
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>ユーザー登録</h2>
+    <form id="register-form">
+        <!-- <p>名前</p> -->
+        <label for="name">名前:</label>
+        <input type="text" id="name" name="name" placeholder="田中 太郎" required><br>
+        <!-- <label for="first_name">名:</label>
+        <input type="text" id="first_name" name="first_name" placeholder="太郎" required><br> -->
+
+        <label for="interest">興味のある分野（タグ追加）:</label>
+        <div class="tag-container" id="tag-container">
+            <input type="text" id="tag-input" placeholder="Enter a keyword and press Enter">
+        </div>
+        <input type="hidden" id="interest" name="interest">
+
+        <label for="interest-text">興味の詳細：</label><br>
+        <textarea id="interest-text" name="interest-text" rows="25" cols="70"></textarea><br>
+
+        <button type="submit">登録</button>
+    </form>
+
+    <p id="response-message"></p>
+
+    <script>
+        $(document).ready(function() {
+            let tags = [];
+
+            $("#tag-input").keypress(function(event) {
+                if (event.which === 13) { // Enter key pressed
+                    event.preventDefault();
+                    let tagText = $(this).val().trim();
+                    if (tagText !== "" && !tags.includes(tagText)) {
+                        tags.push(tagText);
+                        updateTags();
+                    }
+                    $(this).val("");
+                }
+            });
+
+            function updateTags() {
+                $("#tag-container").html('');
+                tags.forEach((tag, index) => {
+                    $("#tag-container").append(`<span class="tag">${tag} <button onclick="removeTag(${index})">&times;</button></span>`);
+                });
+                $("#tag-container").append('<input type="text" id="tag-input" placeholder="Enter a keyword and press Enter">');
+                $("#interest").val(tags.join(", "));
+                $("#tag-input").keypress(function(event) {
+                    if (event.which === 13) {
+                        event.preventDefault();
+                        let tagText = $(this).val().trim();
+                        if (tagText !== "" && !tags.includes(tagText)) {
+                            tags.push(tagText);
+                            updateTags();
+                        }
+                        $(this).val("");
+                    }
+                });
+            }
+
+            window.removeTag = function(index) {
+                tags.splice(index, 1);
+                updateTags();
+            };
+
+            $("#register-form").submit(function(event) {
+                event.preventDefault();
+                var formData = {
+                    name: $("#name").val(),
+                    interest: $("#interest").val(),
+                    interest_text: $("#interest-text").val()
+                };
+
+                $.post("/register", formData, function(response) {
+                    $("#response-message").text(response.message);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
