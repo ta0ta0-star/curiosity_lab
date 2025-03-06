@@ -3,94 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ユーザー登録フォーム</title>
+    <title>研究室マッチング</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        .field-buttons{
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .field-button{
+            background-color: #e0e0e0;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .field-button.active{
+            background-color: #007bff;
+            color: white;
+        }
         .tag-container{
             border: 1px solid #ccc;
             padding: 5px;
             display: flex;
             flex-wrap: wrap;
+            display: none;/* 最初は非表示 */
         }
         .tag{
-            background-color: #007bff;
-            color:white;
-            padding: 5px;
-            margin: 2px;
+            background-color: #f0f0f0;
+            color:black;
+            padding: 5px 10px;
+            margin: 5px;
             border-radius: 5px;
-        }
-        .tag button{
-            background: none;
-            border: none;
-            color: white;
-            margin-left: 5px;
             cursor: pointer;
+            user-select: none;
         }
+        .tag.selected{
+            background-color: #007bff;
+            color: white;
+        }
+        .tag-input-container{
+        margin-top: 10px;
+        }
+
+
     </style>
 </head>
 <body>
-    <h2>ユーザー登録</h2>
+    <h2>研究室マッチング</h2>
     <form id="register-form">
-        <!-- <p>名前</p> -->
-        <label for="name">名前:</label>
-        <input type="text" id="name" name="name" placeholder="田中 太郎" required><br>
-        <!-- <label for="first_name">名:</label>
-        <input type="text" id="first_name" name="first_name" placeholder="太郎" required><br> -->
 
-        <label for="interest">興味のある分野（タグ追加）:</label>
-        <div class="tag-container" id="tag-container">
-            <input type="text" id="tag-input" placeholder="Enter a keyword and press Enter">
+        <label>興味のある分野（クリックして選択）:</label>
+        <div class="field-buttons">
+            <button type="button" class="field-button" data-field="info">情報学</button>
+            <button type="button" class="field-button" data-field="human-info">人間情報学</button>
+            <button type="button" class="field-button" data-field="environment">環境学</button>
+        </div>
+        <div id="tags-info" class="tag-container">
+            <span class="tag">計算理論</span>
+            <span class="tag">アルゴリズム理論</span>
+            <span class="tag">暗号系</span>
+            <span class="tag">機械学習</span>
+            <span class="tag">データサイエンス</span>
+            <span class="tag">自然言語処理</span>
+            <span class="tag">クラウドコンピューティング</span>
+            <span class="tag">情報セキュリティ</span>
+        </div>
+
+        <div id="tags-human-info" class="tag-container">
+            <span class="tag">認知科学</span>
+            <span class="tag">画像処理</span>
+            <span class="tag">音声情報処理</span>
+            <span class="tag">バーチャルリアリティ</span>
+            <span class="tag">知能ロボティクス</span>
+            <span class="tag">感性情報学</span>
+        </div>
+
+        <div id="tags-environment" class="tag-container">
+            <span class="tag">環境動態解析</span>
+            <span class="tag">地球温暖化</span>
+            <span class="tag">環境影響評価</span>
+            <span class="tag">環境負荷低減</span>
+            <span class="tag">リサイクル</span>
+            <span class="tag">持続可能システム</span>
+        </div>
+
+        <input type="hidden" id="interest" name="interest">
+
+        <div class="tag-input-container">
+            <label for="custom-tag">フリーワード:</label>
+            <input type="text" id="custom-tag" placeholder="AI 人工知能">
         </div>
         <input type="hidden" id="interest" name="interest">
 
         <label for="interest-text">興味の詳細：</label><br>
         <textarea id="interest-text" name="interest-text" rows="25" cols="70"></textarea><br>
 
-        <button type="submit">登録</button>
+        <button type="submit">マッチング</button>
     </form>
 
     <p id="response-message"></p>
 
     <script>
         $(document).ready(function() {
-            let tags = [];
+            let selectedTags = new Set();
 
-            $("#tag-input").keypress(function(event) {
-                if (event.which === 13) { // Enter key pressed
-                    event.preventDefault();
-                    let tagText = $(this).val().trim();
-                    if (tagText !== "" && !tags.includes(tagText)) {
-                        tags.push(tagText);
-                        updateTags();
-                    }
-                    $(this).val("");
-                }
+            // 分野ボタンのクリック処理
+            $(".field-button").click(function() {
+                let field = $(this).data("field");
+
+                // すべてのボタンの選択状態を解除し、クリックしたボタンだけ有効化
+                $(".field-button").removeClass("active");
+                $(this).addClass("active");
+
+                // すべてのタグコンテナを非表示にし、選択した分野のタグだけ表示
+                $(".tag-container").hide();
+                $("#tags-" + field).show();
             });
 
-            function updateTags() {
-                $("#tag-container").html('');
-                tags.forEach((tag, index) => {
-                    $("#tag-container").append(`<span class="tag">${tag} <button onclick="removeTag(${index})">&times;</button></span>`);
-                });
-                $("#tag-container").append('<input type="text" id="tag-input" placeholder="Enter a keyword and press Enter">');
-                $("#interest").val(tags.join(", "));
-                $("#tag-input").keypress(function(event) {
-                    if (event.which === 13) {
-                        event.preventDefault();
-                        let tagText = $(this).val().trim();
-                        if (tagText !== "" && !tags.includes(tagText)) {
-                            tags.push(tagText);
-                            updateTags();
-                        }
-                        $(this).val("");
-                    }
-                });
-            }
+            // タグの選択処理
+            $(".tag").click(function() {
+                let tagText = $(this).text();
+                if (selectedTags.has(tagText)) {
+                    selectedTags.delete(tagText);
+                    $(this).removeClass("selected");
+                } else {
+                    selectedTags.add(tagText);
+                    $(this).addClass("selected");
+                }
+                updateHiddenInput();
+            });
 
-            window.removeTag = function(index) {
-                tags.splice(index, 1);
-                updateTags();
-            };
+            function updateHiddenInput() {
+                $("#interest").val(Array.from(selectedTags).join(", "));
+            }
 
             $("#register-form").submit(function(event) {
                 event.preventDefault();
