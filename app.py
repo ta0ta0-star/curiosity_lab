@@ -3,7 +3,6 @@ from flask import request, jsonify, render_template, redirect, g
 import sqlite3
 DATABASE="curiosity_lab.db"
 
-
 app = Flask(__name__)
 
 if __name__ == '__main__':
@@ -17,6 +16,13 @@ def get_db():
     if not hasattr(g, 'sqlite_db'):
         g.sqlite_db = connect_db()
     return g.sqlite_db
+
+@app.teardown_appcontext
+def close_db(exception):
+    """リクエスト終了時にデータベースを閉じる"""
+    db = g.pop('sqlite_db', None)
+    if db is not None:
+        db.close()
 
 
 @app.route('/')
