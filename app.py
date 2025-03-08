@@ -31,10 +31,12 @@ def init_db():
 
 @app.route('/')
 def index():
+
     return render_template('regist.html')
 
 @app.route('/register', methods=['POST'])
 def register():
+
     name = request.form.get('name')
     interest = request.form.get('interest')
     interest_text = request.form.get('interest_text')
@@ -48,3 +50,4 @@ def register():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
