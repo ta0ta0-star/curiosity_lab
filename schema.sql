@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS curiosity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    interest TEXT NOT NULL,
+    interest_text TEXT NOT NULL
+);
