@@ -32,22 +32,35 @@ def init_db():
 @app.route('/')
 def index():
 
-    return render_template('regist.html')
+    return render_template('register.html')
 
 @app.route('/register', methods=['POST'])
 def register():
 
-    name = request.form.get('name')
-    interest = request.form.get('interest')
-    interest_text = request.form.get('interest_text')
+    name = request.form.get('name') #ユーザー名
+    dname = request.form.get('dname') #大分類名
+    iname = request.form.get('iname') #小分類名
+    dcode = request.form.get('dcode') #大分類コード
+    icode = request.form.get('icode') #小分類コード
+    interest_text = request.form.get('interest_text') #興味の詳細
+
+    # デバッグ出力
+    print(f"DEBUG: name={name}, dname={dname}, dcode={dcode}, iname={iname}, icode={icode}, interest_text={interest_text}")
+
+    if not dname or not dcode:
+        return "Error: 大分類が選択されていません", 400
+    if not iname or not icode:
+        return "Error: 小分類が選択されていません", 400
 
     db = get_db()
-    db.execute("INSERT INTO curiosity (name, interest, interest_text) VALUES (?, ?, ?)", (name, interest, interest_text))
+    db.execute("INSERT INTO curiosity (name, dname, iname, dcode, icode, interest_text) VALUES (?, ?, ?, ? ,? ,?)",
+                (name, dname, iname, dcode, icode, interest_text))
     db.commit()
+
+    #return jsonify({"message": "登録が完了しました"}), 200
 
     return redirect('/')
 
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
-
