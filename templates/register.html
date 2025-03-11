@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>研究室マッチング</title>
+    <title>ユーザー登録フォーム</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         .field-buttons{
@@ -19,7 +19,7 @@
             cursor: pointer;
             font-size: 16px;
         }
-        .field-button.active{
+        .field-button.selected{
             background-color: #007bff;
             color: white;
         }
@@ -46,13 +46,34 @@
         .tag-input-container{
         margin-top: 10px;
         }
-
-
     </style>
 </head>
 <body>
-    <h2>研究室マッチング</h2>
-    <form id="register-form">
+    <h2>ユーザー登録</h2>
+    <form method = "POST" id="register-form">
+        <!-- <p>名前</p> -->
+        <label for="name">名前:</label>
+        <input type="text" id="name" name="name" placeholder="田中 太郎" required><br>
+        <!-- <label for="first_name">名:</label>
+        <input type="text" id="first_name" name="first_name" placeholder="太郎" required><br> -->
+
+        <label for="gender">性別：</label><br>
+
+        <input type="radio" id="male" name="gender" value="男性" required>
+        <label for="male">男性</label>
+        <input type="radio" id="female" name="gender" value="女性" required>
+        <label for="female">女性</label>
+        <input type="radio" id="other" name="gender" value="その他" required>
+        <label for="other">その他</label><br>
+
+        <label>生年月日：<input type="text" id="birthday" name="birthday" required></label><br>
+
+        <label>メールアドレス：<input type="text" id="email" name="email" required></label><br>
+
+        <label>電話番号：<input type="text" id="phone_number" name="phone_number" required></label><br>
+
+        <label for="school">所属学校：</label>
+        <input type="text" id="school" name="school" rows="1" cols="15"><br>
 
         <label>興味のある分野（クリックして選択）:</label>
         <div class="field-buttons">
@@ -68,6 +89,8 @@
             <button type="button" class="field-button" data-field="NS" dcode="A1000">自然科学一般</button>
             <button type="button" class="field-button" data-field="Others" dcode="A9999">その他</button>
         </div>
+        <input type="hidden" id="selected-dname" name="dname">
+        <input type="hidden" id="selected-dcode" name="dcode">
 
         <div id="tags-LS" class="tag-container">
             <button type="button" class="tag" icode="A38010">植物栄養学</button>
@@ -501,7 +524,8 @@
             <button class="tag" icode="A99999">その他</button>
         </div>
 
-        <input type="hidden" id="interest" name="interest">
+        <input type="hidden" id="selected-iname" name="iname">
+        <input type="hidden" id="selected-icode" name="icode">
 
         <div class="tag-input-container">
             <label for="custom-tag">フリーワード:</label>
@@ -512,8 +536,10 @@
         <label for="interest-text">興味の詳細：</label><br>
         <textarea id="interest-text" name="interest-text" rows="25" cols="70"></textarea><br>
 
-        <button type="submit">マッチング</button>
+        <!-- <a href="/regist" role="button">登録</a> -->
+        <input type="submit" id="submit_button" value="登録">
     </form>
+    <!-- <a href="/" role="button">一覧に戻る</a> -->
 
     <p id="response-message"></p>
 
@@ -546,6 +572,7 @@
             $(".tag").click(function() {
                 let icode = $(this).attr("icode");
                 let iname = $(this).text().trim();
+                // let tagText = $(this).text();
                 if (selectedIcodes.has(icode)) {
                     selectedInames.delete(iname);
                     selectedIcodes.delete(icode);
@@ -586,6 +613,11 @@
 
                 $.post("/register", formData, function(response) {
                     $("#response-message").text(response.message);
+                });
+
+                //登録ボタンのクリック処理（フォーム送信）
+                $("#submit-button").click(function(){
+                    $("#register-form").submit();
                 });
             });
         });
