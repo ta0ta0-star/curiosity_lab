@@ -572,7 +572,6 @@
             $(".tag").click(function() {
                 let icode = $(this).attr("icode");
                 let iname = $(this).text().trim();
-            
                 if (selectedIcodes.has(icode)) {
                     selectedInames.delete(iname);
                     selectedIcodes.delete(icode);
@@ -582,19 +581,19 @@
                     selectedIcodes.add(icode);
                     $(this).addClass("selected");
                 }
-            
+
                 $("#selected-iname").val(Array.from(selectedInames).join(", "));
                 $("#selected-icode").val(Array.from(selectedIcodes).join(", "));
-            
+
                 // デバッグ用（選択されるたびにコンソールに出力）
                 console.log("選択された小分類:", Array.from(selectedInames));
             });
-        
+
             // フォーム送信時にのみデータを送信
             $("#register-form").submit(function(event) {
                 event.preventDefault(); // デフォルトのフォーム送信を無効化
                 var interestText = $("#interest-text").val();
-            
+
                 if (!selectedDname) {
                     alert("大分類を選択してください！");
                     return;
