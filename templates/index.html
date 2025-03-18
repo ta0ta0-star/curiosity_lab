@@ -19,7 +19,7 @@
             cursor: pointer;
             font-size: 16px;
         }
-        .field-button.active{
+        .field-button.selected{
             background-color: #007bff;
             color: white;
         }
@@ -52,7 +52,7 @@
 </head>
 <body>
     <h2>研究室マッチング</h2>
-    <form id="register-form">
+    <form id="register-form" action="{{url_for('load') }}">
 
         <a href="/user_register" role="button">新規ユーザー登録</a><br>
         <label>興味のある分野（クリックして選択）:</label>
@@ -69,6 +69,8 @@
             <button type="button" class="field-button" data-field="NS" dcode="A1000">自然科学一般</button>
             <button type="button" class="field-button" data-field="Others" dcode="A9999">その他</button>
         </div>
+        <input type="hidden" id="selected-dname" name="dname">
+        <input type="hidden" id="selected-dcode" name="dcode">
 
         <div id="tags-LS" class="tag-container">
             <button type="button" class="tag" icode="A38010">植物栄養学</button>
@@ -502,7 +504,8 @@
             <button type="button" class="tag" icode="A99999">その他</button>
         </div>
 
-        <input type="hidden" id="interest" name="interest">
+        <input type="hidden" id="selected-iname" name="iname">
+        <input type="hidden" id="selected-icode" name="icode">
 
         <div class="tag-input-container">
             <label for="custom-tag">フリーワード:</label>
@@ -513,7 +516,7 @@
         <label for="interest-text">興味の詳細（任意）</label><br>
         <textarea id="interest-text" name="interest-text" rows="25" cols="70"></textarea><br>
 
-        <button type="submit">マッチング</button>
+        <input type="submit" id="submit-button" value="マッチング開始">
     </form>
 
     <p id="response-message"></p>
@@ -538,7 +541,7 @@
                 $("#tags-" + field).show();
 
                 selectedDcode = $(this).attr("dcode");
-                selectedDname = $(this).text();
+                selectedDname = $(this).text().trim();
                 $("#selected-dname").val(selectedDname);
                 $("#selected-dcode").val(selectedDcode);
             });
@@ -556,16 +559,18 @@
                     selectedIcodes.add(icode);
                     $(this).addClass("selected");
                 }
-                updateHiddenInput();
-            });
-
-            function updateHiddenInput() {
                 $("#selected-iname").val(Array.from(selectedInames).join(", "));
                 $("#selected-icode").val(Array.from(selectedIcodes).join(", "));
-            }
 
+                // デバッグ用（選択されるたびにコンソールに出力）
+                console.log("選択された小分類:", Array.from(selectedInames));
+            });
+
+
+            // フォーム送信時にのみデータを送信
             $("#register-form").submit(function(event) {
-                event.preventDefault();
+                event.preventDefault(); // デフォルトのフォーム送信を無効化
+                var interestText = $("#interest-text").val();
 
                 if (!selectedDname) {
                     alert("大分類を選択してください！");
@@ -585,8 +590,11 @@
                     interest_text: $("#interest-text").val()
                 };
 
+                console.log("送信データ:", formData); // デバッグ用（送信時に確認）
+
                 $.post("/register", formData, function(response) {
                     $("#response-message").text(response.message);
+                    window.location.href = "{{ url_for('load') }}"; // load.htmlに遷移
                 });
             });
         });
