@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー一覧</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2>登録ユーザー一覧</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>名前</th>
+            <th>性別</th>
+            <th>生年月日</th>
+            <th>メールアドレス</th>
+            <th>電話番号</th>
+            <th>学校</th>
+            <th>大分類</th>
+            <th>小分類</th>
+            <th>操作</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.gender }}</td>
+            <td>{{ user.birthday }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.phone_number }}</td>
+            <td>{{ user.school }}</td>
+            <td>{{ user.dname }} ({{ user.dcode }})</td>
+            <td>{{ user.iname }} ({{ user.icode }})</td>
+            <td>
+                <a href="{{ url_for('edit', id=user.id) }}">編集</a>
+                <a href="{{ url_for('delete', id=user.id) }}" onclick="return confirm('本当に削除しますか？')">削除</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{url_for('index') }}">トップページに戻る</a>
+</body>
+</html>

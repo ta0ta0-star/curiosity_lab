@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー情報編集</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2>ユーザー編集</h2>
+    <form action="{{ url_for('update', id=user.id) }}"method="POST">
+        <div class="form-group">
+            <label for name>名前:</label>
+            <input type="text" name="name" value="{{ user.name }}" required>
+        </div>
+
+
+<h1>ユーザー情報編集</h1>
+
+<form action="{{ url_for('update', id=user.id) }}" method="post">
+    <div class="form-group">
+        <label for="name">名前</label>
+        <input type="text" id="name" name="name" value="{{ user.name }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="gender">性別</label>
+        <select id="gender" name="gender" required>
+            <option value="男性" {% if user.gender == '男性' %}selected{% endif %}>男性</option>
+            <option value="女性" {% if user.gender == '女性' %}selected{% endif %}>女性</option>
+            <option value="その他" {% if user.gender == 'その他' %}selected{% endif %}>その他</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="birthday">生年月日</label>
+        <input type="date" id="birthday" name="birthday" value="{{ user.birthday }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="email">メールアドレス</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="phone_number">電話番号</label>
+        <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="school">学校</label>
+        <input type="text" id="school" name="school" value="{{ user.school }}">
+    </div>
+    
+    <div class="form-group">
+        <label for="dname">大分類名</label>
+        <input type="text" id="dname" name="dname" value="{{ user.dname }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="dcode">大分類コード</label>
+        <input type="text" id="dcode" name="dcode" value="{{ user.dcode }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="iname">小分類名</label>
+        <input type="text" id="iname" name="iname" value="{{ user.iname }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="icode">小分類コード</label>
+        <input type="text" id="icode" name="icode" value="{{ user.icode }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="interest_text">興味の詳細</label>
+        <textarea id="interest_text" name="interest_text">{{ user.interest_text }}</textarea>
+    </div>
+        <button type="submit">更新</button>
+    </form>
+    <a href="{{ url_for('list_users') }}">一覧に戻る</a>
+</body>
+</html>
