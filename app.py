@@ -99,6 +99,7 @@ def register_curiosity():
     db.commit()
 
     #return redirect('/')
+    return jsonify({"message": "登録が完了しました"}), 200
 
 # 個人情報の登録ページ
 @app.route('/user_register', methods=['GET', 'POST'])
