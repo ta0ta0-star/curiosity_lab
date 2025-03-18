@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マッチング中</title>
+    <style>
+        .load-text {
+            color: black;
+            font-size: 16pt;
+        }
+
+        .load-blink {
+            animation: blink 1s linear infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .load-blink-dot {
+            animation: blink-dot 1.2s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes blink-dot {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .loading {
+            /* 画面サイズ */
+            margin-top: 25px; /* 上部に余白を追加 */
+            width: 100%;
+            height: 400px;
+            /* 背景色（白、不透明度80%） */
+            background-color: #f0f0f0;
+            opacity: 0.8;
+            /* フレックスコンテナ（縦並べ、横中央、縦中央） */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* 表示を一番上 */
+            z-index: 500;
+            visibility: visible; /* 初期状態では表示 */
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <h2>マッチング中...</h2>
+    <p>登録完了しました</p>
+    <p>あなたに合う研究室を探しています</p>
+    <div id="loading" class="loading">
+        <div id="sample09" class="loading">
+            <svg width="200" height="200">
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(0,100,100)" class="load-blink-dot" style="animation-delay: 0.0s;"> </rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(30,100,100)" class="load-blink-dot" style="animation-delay: 0.1s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(60,100,100)" class="load-blink-dot" style="animation-delay: 0.2s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(90,100,100)" class="load-blink-dot" style="animation-delay: 0.3s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(120,100,100)" class="load-blink-dot" style="animation-delay: 0.4s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(150,100,100)" class="load-blink-dot" style="animation-delay: 0.5s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(180,100,100)" class="load-blink-dot" style="animation-delay: 0.6s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(210,100,100)" class="load-blink-dot" style="animation-delay: 0.7s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(240,100,100)" class="load-blink-dot" style="animation-delay: 0.8s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(270,100,100)" class="load-blink-dot" style="animation-delay: 0.9s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(300,100,100)" class="load-blink-dot" style="animation-delay: 1.0s;"></rect>
+                <rect x="125" y="95" width="50" height="10" stroke="transparent" fill="#000000"
+                    transform="rotate(330,100,100)" class="load-blink-dot" style="animation-delay: 1.1s;"></rect>
+            </svg>
+            <div class="load-text load-blink">Now Loading...</div>
+        </div>
+    </div>
+</body>
+</html>
