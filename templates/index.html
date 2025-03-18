@@ -46,20 +46,18 @@
         .tag-input-container{
         margin-top: 10px;
         }
-
-
     </style>
 </head>
 <body>
     <h2>研究室マッチング</h2>
-    <form id="register-form" action="{{url_for('load') }}">
+    <form method ="POST" id="register-form" action="{{url_for('register_curiosity') }}">
 
         <a href="/user_register" role="button">新規ユーザー登録</a><br>
         <label>興味のある分野（クリックして選択）:</label>
         <div class="field-buttons">
             <button type="button" class="field-button" data-field="LS" dcode="A189">ライフサイエンス</button>
             <button type="button" class="field-button" data-field="Info" dcode="A289">情報通信</button>
-            <button type="button" class="field-button" data-field="ESAS">環境・農学</button>
+            <button type="button" class="field-button" data-field="ESAS" dcode="A389">環境・農学</button>
             <button type="button" class="field-button" data-field="NMTA" dcode="A489">ナノテク・材料</button>
             <button type="button" class="field-button" data-field="Eg" dcode="A589">エネルギー</button>
             <button type="button" class="field-button" data-field="MT" dcode="A689">ものづくり技術（機械・電気電子・化学工学）</button>
@@ -592,9 +590,18 @@
 
                 console.log("送信データ:", formData); // デバッグ用（送信時に確認）
 
-                $.post("/register", formData, function(response) {
-                    $("#response-message").text(response.message);
-                    window.location.href = "{{ url_for('load') }}"; // load.htmlに遷移
+                $.ajax({
+                    type: "POST",
+                    url: "/register",
+                    data: formData,
+                    success: function(response) {
+                        console.log("登録成功:", response);
+                        window.location.href = "/load";
+                    },
+                    error: function(error) {
+                        console.error("登録エラー:", error);
+                        alert("登録中にエラーが発生しました。もう一度お試しください。");
+                    }
                 });
             });
         });
