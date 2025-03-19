@@ -6,6 +6,11 @@
     <title>研究室マッチング</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
         .field-buttons{
             display: flex;
             gap: 10px;
@@ -86,12 +91,6 @@
                         <a class="nav-link" href="{{ url_for('profile') }}">マイページ</a>
                     {% if g.user.id == 1 %}
                         <a class="nav-link" href="{{ url_for('list_users') }}">ユーザー一覧</a>
-                        <!-- <a class="nav-link" href="{{ url_for('list_labs') }}">研究室一覧</a>
-                        <a class="nav-link" href="{{ url_for('list_curiosities') }}">研究室の興味一覧</a>
-                        <a class="nav-link" href="{{ url_for('list_user_curiosities') }}">ユーザーの興味一覧</a>
-                        <a class="nav-link" href="{{ url_for('list_matching') }}">マッチング一覧</a>
-                        <a class="nav-link" href="{{ url_for('list_matching_result') }}">マッチング結果一覧</a>
-                        <a class="nav-link" href="{{ url_for('list_matching_result_detail') }}">マッチング結果詳細一覧</a> -->
                     {% endif %}
                         <a class="nav-link" href="{{ url_for('logout') }}">ログアウト</a>
                     {% else %}
@@ -105,10 +104,9 @@
     
 </head>
 <body>
-    <h2>研究室マッチング</h2>
+    <h1>マッチング詳細入力</h1>
     <form method ="POST" id="register-form" action="{{url_for('register_curiosity') }}">
 
-        <a href="/user_register" role="button">新規ユーザー登録</a><br>
         <label>興味のある分野（クリックして選択）:</label>
         <div class="field-buttons">
             <button type="button" class="field-button" data-field="LS" dcode="A189">ライフサイエンス</button>
