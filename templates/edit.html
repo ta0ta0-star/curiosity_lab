@@ -5,79 +5,750 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ユーザー情報編集</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .field-buttons{
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .field-button{
+            background-color: #e0e0e0;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .field-button.selected{
+            background-color: #007bff;
+            color: white;
+        }
+        .tag-container{
+            border: 1px solid #ccc;
+            padding: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            display: none;/* 最初は非表示 */
+        }
+        .tag{
+            background-color: #f0f0f0;
+            color:black;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .tag.selected{
+            background-color: #007bff;
+            color: white;
+        }
+        .tag-input-container{
+        margin-top: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea{
+            width: 15%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 25em;
+            width: 36em;
+        }
+        /* button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        } */
+        button:hover {
+            background-color: #007bff;
+            color: white;
+        }
+        a {
+            display: inline-block;
+            margin-top: 10px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        /* Flashメッセージのスタイル */
+        .flash-messages .alert {
+            width: 60%;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h2>ユーザー編集</h2>
-    <form action="{{ url_for('update', id=user.id) }}"method="POST">
+    <h1>ユーザー情報編集</h1>
+    
+    <!-- Flashメッセージ表示エリア -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <form action="{{ url_for('update', id=user.id) }}" method="post" id="edit-form">
         <div class="form-group">
-            <label for name>名前:</label>
-            <input type="text" name="name" value="{{ user.name }}" required>
+            <label for="name">名前：</label>
+            <input type="text" id="name" name="name" value="{{ user.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="gender">性別</label><br>
+            <input type="radio" id="male" name="gender" value="男性" {% if user.gender == '男性' %}checked{% endif %} required>
+            <label for="male">男性：</label>
+            <input type="radio" id="female" name="gender" value="女性" {% if user.gender == '女性' %}checked{% endif %} required>
+            <label for="female">女性：</label>
+            <input type="radio" id="other" name="gender" value="その他" {% if user.gender == 'その他' %}checked{% endif %} required>
+            <label for="other">その他：</label><br>
+        </div>
+        
+        <div class="form-group">
+            <label for="birthday">生年月日：</label>
+            <input type="date" id="birthday" name="birthday" value="{{ user.birthday }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">メールアドレス：</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone_number">電話番号：</label>
+            <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="school">所属学校：</label>
+            <input type="text" id="school" name="school" value="{{ user.school }}">
+        </div>
+        
+        <div class="form-group">
+            <label>興味のある分野（クリックして選択）:</label>
+        <div class="field-buttons">
+            <button type="button" class="field-button" data-field="LS" dcode="A189" {% if user.dcode == 'A189' %}data-selected="true"{% endif %}>ライフサイエンス</button>
+                <button type="button" class="field-button" data-field="Info" dcode="A289" {% if user.dcode == 'A289' %}data-selected="true"{% endif %}>情報通信</button>
+                <button type="button" class="field-button" data-field="ESAS" dcode="A389" {% if user.dcode == 'A389' %}data-selected="true"{% endif %}>環境・農学</button>
+                <button type="button" class="field-button" data-field="NMTA" dcode="A489" {% if user.dcode == 'A489' %}data-selected="true"{% endif %}>ナノテク・材料</button>
+                <button type="button" class="field-button" data-field="Eg" dcode="A589" {% if user.dcode == 'A589' %}data-selected="true"{% endif %}>エネルギー</button>
+                <button type="button" class="field-button" data-field="MT" dcode="A689" {% if user.dcode == 'A689' %}data-selected="true"{% endif %}>ものづくり技術（機械・電気電子・化学工学）</button>
+                <button type="button" class="field-button" data-field="SI" dcode="A789" {% if user.dcode == 'A789' %}data-selected="true"{% endif %}>社会基盤（土木・建築・防災） </button>
+                <button type="button" class="field-button" data-field="FT" dcode="A889" {% if user.dcode == 'A889' %}data-selected="true"{% endif %}>フロンティア（航空・船舶）</button>
+                <button type="button" class="field-button" data-field="HSS" dcode="A900" {% if user.dcode == 'A900' %}data-selected="true"{% endif %}>人文・社会</button>
+                <button type="button" class="field-button" data-field="NS" dcode="A1000" {% if user.dcode == 'A1000' %}data-selected="true"{% endif %}>自然科学一般</button>
+                <button type="button" class="field-button" data-field="Others" dcode="A9999" {% if user.dcode == 'A9999' %}data-selected="true"{% endif %}>その他</button>
+            </div>
+            <input type="hidden" id="selected-dname" name="dname" value="{{ user.dname }}">
+            <input type="hidden" id="selected-dcode" name="dcode" value="{{ user.dcode }}">
         </div>
 
+        <div id="tags-LS" class="tag-container">
+            <button type="button" class="tag" icode="A38010">植物栄養学</button>
+            <button type="button" class="tag" icode="A38010">土壌学</button>
+            <button type="button" class="tag" icode="A38020">応用微生物学</button>
+            <button type="button" class="tag" icode="A38030">応用生物化学</button>
+            <button type="button" class="tag" icode="A38040">生物有機化学</button>
+            <button type="button" class="tag" icode="A38050">食品科学</button>
+            <button type="button" class="tag" icode="A38060">応用分子細胞生物学</button>
+            <button type="button" class="tag" icode="A40010">森林科学</button>
+            <button type="button" class="tag" icode="A40020">木質科学</button>
+            <button type="button" class="tag" icode="A40030">水圏生産科学</button>
+            <button type="button" class="tag" icode="A40040">水圏生命科学</button>
+            <button type="button" class="tag" icode="A42010">動物生産科学</button>
+            <button type="button" class="tag" icode="A42020">獣医学</button>
+            <button type="button" class="tag" icode="A42030">動物生命科学</button>
+            <button type="button" class="tag" icode="A42040">実験動物学</button>
+            <button type="button" class="tag" icode="A43010">分子生物学</button>
+            <button type="button" class="tag" icode="A43020">構造生物化学</button>
+            <button type="button" class="tag" icode="A43030">機能生物化学</button>
+            <button type="button" class="tag" icode="A43040">生物物理学</button>
+            <button type="button" class="tag" icode="A43050">ゲノム生物学</button>
+            <button type="button" class="tag" icode="A43060">システムゲノム科学</button>
+            <button type="button" class="tag" icode="A44010">細胞生物学</button>
+            <button type="button" class="tag" icode="A44020">発生生物学</button>
+            <button type="button" class="tag" icode="A44030">植物分子</button>
+            <button type="button" class="tag" icode="A44030">生理科学</button>
+            <button type="button" class="tag" icode="A44040">形態</button>
+            <button type="button" class="tag" icode="A44040">構造</button>
+            <button type="button" class="tag" icode="A44050">動物生理化学</button>
+            <button type="button" class="tag" icode="A44050">生理学</button>
+            <button type="button" class="tag" icode="A44050">行動学</button>
+            <button type="button" class="tag" icode="A45010">遺伝学</button>
+            <button type="button" class="tag" icode="A45020">進化生物学</button>
+            <button type="button" class="tag" icode="A45030">多様性生物学</button>
+            <button type="button" class="tag" icode="A45030">分類学</button>
+            <button type="button" class="tag" icode="A45040">生態学</button>
+            <button type="button" class="tag" icode="A45040">環境学</button>
+            <button type="button" class="tag" icode="A45050">自然人類学</button>
+            <button type="button" class="tag" icode="A45060">応用人類学</button>
+            <button type="button" class="tag" icode="A46010">神経科学一般</button>
+            <button type="button" class="tag" icode="A46020">神経形態学</button>
+            <button type="button" class="tag" icode="A46030">神経機能学</button>
+            <button type="button" class="tag" icode="A47010">薬系化学</button>
+            <button type="button" class="tag" icode="A47010">創薬科学</button>
+            <button type="button" class="tag" icode="A47020">薬系分析</button>
+            <button type="button" class="tag" icode="A47020">物理化学</button>
+            <button type="button" class="tag" icode="A47030">薬系衛生</button>
+            <button type="button" class="tag" icode="A47030">生物化学</button>
+            <button type="button" class="tag" icode="A47040">薬理学</button>
+            <button type="button" class="tag" icode="A47050">環境</button>
+            <button type="button" class="tag" icode="A47050">天然医薬資源学</button>
+            <button type="button" class="tag" icode="A47060">医療薬学</button>
+            <button type="button" class="tag" icode="A48010">解剖学</button>
+            <button type="button" class="tag" icode="A48020">生理学</button>
+            <button type="button" class="tag" icode="A48040">医化学</button>
+            <button type="button" class="tag" icode="A49010">病態医化学</button>
+            <button type="button" class="tag" icode="A49020">人体病理学</button>
+            <button type="button" class="tag" icode="A49030">実験病理学</button>
+            <button type="button" class="tag" icode="A49040">寄生虫学</button>
+            <button type="button" class="tag" icode="A49050">細菌学</button>
+            <button type="button" class="tag" icode="A49060">ウイルス学</button>
+            <button type="button" class="tag" icode="A49070">免疫学</button>
+            <button type="button" class="tag" icode="A50010">腫瘍生物学</button>
+            <button type="button" class="tag" icode="A50020">腫瘍診断</button>
+            <button type="button" class="tag" icode="A50020">治療学</button>
+            <button type="button" class="tag" icode="A51010">基盤脳科学</button>
+            <button type="button" class="tag" icode="A51020">認知脳科学</button>
+            <button type="button" class="tag" icode="A51030">病態神経科学</button>
+            <button type="button" class="tag" icode="A52010">内科学一般</button>
+            <button type="button" class="tag" icode="A52020">神経内科学</button>
+            <button type="button" class="tag" icode="A52030">精神神経科学</button>
+            <button type="button" class="tag" icode="A52040">放射線科学</button>
+            <button type="button" class="tag" icode="A52050">胎児医学</button>
+            <button type="button" class="tag" icode="A52050">小児成育学</button>
+            <button type="button" class="tag" icode="A53010">消化器内科学</button>
+            <button type="button" class="tag" icode="A53020">循環器内科学</button>
+            <button type="button" class="tag" icode="A53030">呼吸器内科学</button>
+            <button type="button" class="tag" icode="A53040">腎臟內科学</button>
+            <button type="button" class="tag" icode="A53050">皮膚科学</button>
+            <button type="button" class="tag" icode="A54010">血液</button>
+            <button type="button" class="tag" icode="A54010">腫瘍内科学</button>
+            <button type="button" class="tag" icode="A54020">膠原病</button>
+            <button type="button" class="tag" icode="A54020">アレルギー内科学</button>
+            <button type="button" class="tag" icode="A54030">感染症内科学</button>
+            <button type="button" class="tag" icode="A54040">代謝</button>
+            <button type="button" class="tag" icode="A54040">內分泌学</button>
+            <button type="button" class="tag" icode="A55010">外科学一般</button>
+            <button type="button" class="tag" icode="A55010">小児外科学</button>
+            <button type="button" class="tag" icode="A55020">消化器外科学</button>
+            <button type="button" class="tag" icode="A55030">心臓血管外科学</button>
+            <button type="button" class="tag" icode="A55040">呼吸器外科学</button>
+            <button type="button" class="tag" icode="A55050">麻酔科学</button>
+            <button type="button" class="tag" icode="A55060">救急医学</button>
+            <button type="button" class="tag" icode="A56010">脳神経外科学</button>
+            <button type="button" class="tag" icode="A56020">整形外科学</button>
+            <button type="button" class="tag" icode="A56030">泌尿器科学</button>
+            <button type="button" class="tag" icode="A56040">産婦人科学</button>
+            <button type="button" class="tag" icode="A56050">眼科学</button>
+            <button type="button" class="tag" icode="A56060">耳鼻咽喉科学</button>
+            <button type="button" class="tag" icode="A56070">形成外科学</button>
+            <button type="button" class="tag" icode="A57010">口腔生物学</button>
+            <button type="button" class="tag" icode="A57020">口腔病態学</button>
+            <button type="button" class="tag" icode="A57030">保存治療系歯学</button>
+            <button type="button" class="tag" icode="A57040">口腔再生医学</button>
+            <button type="button" class="tag" icode="A57040">歯科医用工学</button>
+            <button type="button" class="tag" icode="A57050">補綴系歯学</button>
+            <button type="button" class="tag" icode="A57060">外科系歯学</button>
+            <button type="button" class="tag" icode="A57070">成長</button>
+            <button type="button" class="tag" icode="A57070">発育系歯学</button>
+            <button type="button" class="tag" icode="A57080">社会系歯学</button>
+            <button type="button" class="tag" icode="A58010">医療管理学</button>
+            <button type="button" class="tag" icode="A58010">医療系社会学</button>
+            <button type="button" class="tag" icode="A58020">衛生学</button>
+            <button type="button" class="tag" icode="A58020">公衆衛生学分野：実験系を含む</button>
+            <button type="button" class="tag" icode="A58030">衛生学</button>
+            <button type="button" class="tag" icode="A58030">公衆衛生学分野：実験系を含まない</button>
+            <button type="button" class="tag" icode="A58040">法医学</button>
+            <button type="button" class="tag" icode="A58050">基礎看護学</button>
+            <button type="button" class="tag" icode="A58060">臨床看護学</button>
+            <button type="button" class="tag" icode="A58070">生涯発達看護学</button>
+            <button type="button" class="tag" icode="A58080">高齢者看護学</button>
+            <button type="button" class="tag" icode="A58080">地域看護学</button>
+            <button type="button" class="tag" icode="A59010">リハビリテーション科学</button>
+            <button type="button" class="tag" icode="A59020">スポーツ科学</button>
+            <button type="button" class="tag" icode="A59030">体育学</button>
+            <button type="button" class="tag" icode="A59030">身体教育学</button>
+            <button type="button" class="tag" icode="A59040">栄養学</button>
+            <button type="button" class="tag" icode="A59040">健康科学</button>
+            <button type="button" class="tag" icode="A90110">生体医工学</button>
+            <button type="button" class="tag" icode="A90120">生体材料学</button>
+            <button type="button" class="tag" icode="A90130">医用システム</button>
+            <button type="button" class="tag" icode="A90140">医療技術評価学</button>
+            <button type="button" class="tag" icode="A90150">医療福祉工学</button>
+        </div>
 
-<h1>ユーザー情報編集</h1>
+        <div id="tags-Info" class="tag-container">
+            <button type="button" class="tag" icode="A20010">機械力学</button>
+            <button type="button" class="tag" icode="A20010">メカトロニクス</button>
+            <button type="button" class="tag" icode="A20020">ロボティクス</button>
+            <button type="button" class="tag" icode="A20020">知能機械システム</button>
+            <button type="button" class="tag" icode="A60010">情報学基礎論</button>
+            <button type="button" class="tag" icode="A60020">数理情報学</button>
+            <button type="button" class="tag" icode="A60030">統計科学</button>
+            <button type="button" class="tag" icode="A60040">計算機システム</button>
+            <button type="button" class="tag" icode="A60050">ソフトウェア</button>
+            <button type="button" class="tag" icode="A60060">情報ネットワーク</button>
+            <button type="button" class="tag" icode="A60070">情報セキュリティ</button>
+            <button type="button" class="tag" icode="A60080">データベース</button>
+            <button type="button" class="tag" icode="A60090">高性能計算</button>
+            <button type="button" class="tag" icode="A60100">計算科学</button>
+            <button type="button" class="tag" icode="A61010">知覚情報処理</button>
+            <button type="button" class="tag" icode="A61020">ヒューマンインタフェース</button>
+            <button type="button" class="tag" icode="A61020">インタラクション</button>
+            <button type="button" class="tag" icode="A61030">知能情報学</button>
+            <button type="button" class="tag" icode="A61040">ソフトコンピューティング</button>
+            <button type="button" class="tag" icode="A61050">知能ロボティクス</button>
+            <button type="button" class="tag" icode="A61060">感性情報学</button>
+            <button type="button" class="tag" icode="A62010">生命</button>
+            <button type="button" class="tag" icode="A62010">健康</button>
+            <button type="button" class="tag" icode="A62010">医療情報学</button>
+            <button type="button" class="tag" icode="A62020">ウェブ情報学</button>
+            <button type="button" class="tag" icode="A62020">サービス情報学</button>
+            <button type="button" class="tag" icode="A62030">学習支援システム</button>
+            <button type="button" class="tag" icode="A62040">エンタテインメント</button>
+            <button type="button" class="tag" icode="A62040">ゲーム情報学</button>
+        </div>
 
-<form action="{{ url_for('update', id=user.id) }}" method="post">
-    <div class="form-group">
-        <label for="name">名前</label>
-        <input type="text" id="name" name="name" value="{{ user.name }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="gender">性別</label>
-        <select id="gender" name="gender" required>
-            <option value="男性" {% if user.gender == '男性' %}selected{% endif %}>男性</option>
-            <option value="女性" {% if user.gender == '女性' %}selected{% endif %}>女性</option>
-            <option value="その他" {% if user.gender == 'その他' %}selected{% endif %}>その他</option>
-        </select>
-    </div>
-    
-    <div class="form-group">
-        <label for="birthday">生年月日</label>
-        <input type="date" id="birthday" name="birthday" value="{{ user.birthday }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="email">メールアドレス</label>
-        <input type="email" id="email" name="email" value="{{ user.email }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="phone_number">電話番号</label>
-        <input type="tel" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="school">学校</label>
-        <input type="text" id="school" name="school" value="{{ user.school }}">
-    </div>
-    
-    <div class="form-group">
-        <label for="dname">大分類名</label>
-        <input type="text" id="dname" name="dname" value="{{ user.dname }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="dcode">大分類コード</label>
-        <input type="text" id="dcode" name="dcode" value="{{ user.dcode }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="iname">小分類名</label>
-        <input type="text" id="iname" name="iname" value="{{ user.iname }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="icode">小分類コード</label>
-        <input type="text" id="icode" name="icode" value="{{ user.icode }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="interest_text">興味の詳細</label>
-        <textarea id="interest_text" name="interest_text">{{ user.interest_text }}</textarea>
-    </div>
+        <div id="tags-ESAS" class="tag-container">
+            <button type="button" class="tag" icode="A39010">遺伝育種科学</button>
+            <button type="button" class="tag" icode="A39020">作物生産科学</button>
+            <button type="button" class="tag" icode="A39030">園芸科学</button>
+            <button type="button" class="tag" icode="A39040">植物保護科学</button>
+            <button type="button" class="tag" icode="A39050">昆虫科学</button>
+            <button type="button" class="tag" icode="A39060">生物資源保全学</button>
+            <button type="button" class="tag" icode="A39070">ランドスケープ科学</button>
+            <button type="button" class="tag" icode="A41020">農業社会構造</button>
+            <button type="button" class="tag" icode="A41030">地域環境工学</button>
+            <button type="button" class="tag" icode="A41030">農村計画学</button>
+            <button type="button" class="tag" icode="A41040">農業環境工学</button>
+            <button type="button" class="tag" icode="A41040">農業情報工学</button>
+            <button type="button" class="tag" icode="A41050">環境農学</button>
+            <button type="button" class="tag" icode="A63010">環境動態解析</button>
+            <button type="button" class="tag" icode="A63020">放射線影響</button>
+            <button type="button" class="tag" icode="A63030">化学物質影響</button>
+            <button type="button" class="tag" icode="A63040">環境影響評価</button>
+            <button type="button" class="tag" icode="A64010">環境負荷</button>
+            <button type="button" class="tag" icode="A64010">リスク評価管理</button>
+            <button type="button" class="tag" icode="A64020">環境負荷低減技術</button>
+            <button type="button" class="tag" icode="A64020">保全修復技術</button>
+            <button type="button" class="tag" icode="A64030">環境材料</button>
+            <button type="button" class="tag" icode="A64030">リサイクル技術</button>
+            <button type="button" class="tag" icode="A64040">自然共生システム</button>
+            <button type="button" class="tag" icode="A64050">循環型社会システム</button>
+            <button type="button" class="tag" icode="A64060">環境政策</button>
+            <button type="button" class="tag" icode="A64060">環境配慮型社会</button>
+        </div>
+
+        <div id="tags-NMTA" class="tag-container">
+            <button type="button" class="tag" icode="A26010">金属材料物性</button>
+            <button type="button" class="tag" icode="A26020">無機材料</button>
+            <button type="button" class="tag" icode="A26020">物性</button>
+            <button type="button" class="tag" icode="A26030">複合材料</button>
+            <button type="button" class="tag" icode="A26030">界面</button>
+            <button type="button" class="tag" icode="A26040">構造材料</button>
+            <button type="button" class="tag" icode="A26040">機能材料</button>
+            <button type="button" class="tag" icode="A26050">材料加工</button>
+            <button type="button" class="tag" icode="A26050">組織制御</button>
+            <button type="button" class="tag" icode="A26060">金属生産</button>
+            <button type="button" class="tag" icode="A26060">資源生産</button>
+            <button type="button" class="tag" icode="A28010">ナノ構造化学</button>
+            <button type="button" class="tag" icode="A28020">ナノ構造物理</button>
+            <button type="button" class="tag" icode="A28030">ナノ材料科学</button>
+            <button type="button" class="tag" icode="A28040">ナノバイオサイエンス</button>
+            <button type="button" class="tag" icode="A28050">ナノマイクロシステム</button>
+            <button type="button" class="tag" icode="A29010">応用物性</button>
+            <button type="button" class="tag" icode="A29020">薄膜</button>
+            <button type="button" class="tag" icode="A29030">応用物理一般</button>
+            <button type="button" class="tag" icode="A30010">結晶工学</button>
+            <button type="button" class="tag" icode="A30020">光工学</button>
+            <button type="button" class="tag" icode="A32010">基礎物理化学</button>
+            <button type="button" class="tag" icode="A32020">機能物性化学</button>
+            <button type="button" class="tag" icode="A33010">構造有機化学</button>
+            <button type="button" class="tag" icode="A33010">物理有機化学</button>
+            <button type="button" class="tag" icode="A33020">有機合成化学</button>
+            <button type="button" class="tag" icode="A34010">無機</button>
+            <button type="button" class="tag" icode="A34020">分析化学</button>
+            <button type="button" class="tag" icode="A34030">グリーンサステイナブルケミストリー</button>
+            <button type="button" class="tag" icode="A34030">環境化学</button>
+            <button type="button" class="tag" icode="A35010">高分子化学</button>
+            <button type="button" class="tag" icode="A35020">高分子材料</button>
+            <button type="button" class="tag" icode="A35030">有機機能材料</button>
+            <button type="button" class="tag" icode="A36010">無機物質</button>
+            <button type="button" class="tag" icode="A36020">エネルギー化学</button>
+            <button type="button" class="tag" icode="A37010">生体化学</button>
+            <button type="button" class="tag" icode="A37020">生物分子化学</button>
+            <button type="button" class="tag" icode="A37030">ケミカルバイオロジー</button>
+        </div>
+
+        <div id="tags-Eg" class="tag-container">
+            <button type="button" class="tag" icode="A14010">プラズマ科学</button>
+            <button type="button" class="tag" icode="A14020">核融合学</button>
+            <button type="button" class="tag" icode="A14030">プラズマ応用科学</button>
+            <button type="button" class="tag" icode="A31010">原子力工学</button>
+            <button type="button" class="tag" icode="A31020">地球資源工学</button>
+            <button type="button" class="tag" icode="A31020">エネルギー学</button>
+            <button type="button" class="tag" icode="A80040">量子ビーム科学</button>
+        </div>
+
+        <div id="tags-MT" class="tag-container">
+            <button type="button" class="tag" icode="A18010">材料力学</button>
+            <button type="button" class="tag" icode="A18010">機械材料</button>
+            <button type="button" class="tag" icode="A18020">加工学</button>
+            <button type="button" class="tag" icode="A18020">生産工学</button>
+            <button type="button" class="tag" icode="A18030">設計工学</button>
+            <button type="button" class="tag" icode="A18040">機械要素</button>
+            <button type="button" class="tag" icode="A18040">トライボロジー</button>
+            <button type="button" class="tag" icode="A19010">流体工学</button>
+            <button type="button" class="tag" icode="A19020">熱工学</button>
+            <button type="button" class="tag" icode="A21010">電力工学</button>
+            <button type="button" class="tag" icode="A21020">通信工学</button>
+            <button type="button" class="tag" icode="A21030">計測工学</button>
+            <button type="button" class="tag" icode="A21040">制御</button>
+            <button type="button" class="tag" icode="A21040">システム工学</button>
+            <button type="button" class="tag" icode="A21050">電気電子材料工学</button>
+            <button type="button" class="tag" icode="A21060">電子デバイス</button>
+            <button type="button" class="tag" icode="A21060">電子機器</button>
+            <button type="button" class="tag" icode="A27010">移動現象</button>
+            <button type="button" class="tag" icode="A27010">単位操作</button>
+            <button type="button" class="tag" icode="A27020">反応工学</button>
+            <button type="button" class="tag" icode="A27020">プロセスシステム工学</button>
+            <button type="button" class="tag" icode="A27030">触媒プロセス</button>
+            <button type="button" class="tag" icode="A27030">資源化学プロセス</button>
+            <button type="button" class="tag" icode="A27040">バイオ機能応用</button>
+            <button type="button" class="tag" icode="A27040">バイオプロセス工学</button>
+        </div>
+
+        <div id="tags-SI" class="tag-container">
+            <button type="button" class="tag" icode="A22010">土木材料</button>
+            <button type="button" class="tag" icode="A22010">施工</button>
+            <button type="button" class="tag" icode="A22010">建設マネジメント</button>
+            <button type="button" class="tag" icode="A22020">構造工学</button>
+            <button type="button" class="tag" icode="A22020">地震工学</button>
+            <button type="button" class="tag" icode="A22030">地盤工学</button>
+            <button type="button" class="tag" icode="A22040">水工学</button>
+            <button type="button" class="tag" icode="A22050">土木計画学</button>
+            <button type="button" class="tag" icode="A22050">交通工学</button>
+            <button type="button" class="tag" icode="A22060">土木環境システム</button>
+            <button type="button" class="tag" icode="A23010">建築構造</button>
+            <button type="button" class="tag" icode="A23010">材料</button>
+            <button type="button" class="tag" icode="A23020">建築環境</button>
+            <button type="button" class="tag" icode="A23020">建築設備</button>
+            <button type="button" class="tag" icode="A23030">建築計画</button>
+            <button type="button" class="tag" icode="A23030">都市計画</button>
+            <button type="button" class="tag" icode="A23040">建築史</button>
+            <button type="button" class="tag" icode="A23040">意匠</button>
+            <button type="button" class="tag" icode="A25010">社会システム工学</button>
+            <button type="button" class="tag" icode="A25020">安全工学</button>
+            <button type="button" class="tag" icode="A25030">防災工学</button>
+        </div>
+
+        <div id="tags-FT" class="tag-container">
+            <button type="button" class="tag" icode="A24010">航空宇宙工学</button>
+            <button type="button" class="tag" icode="A24020">船舶海洋工学</button>
+        </div>
+
+        <div id="tags-HSS" class="tag-container">
+            <button type="button" class="tag" icode="A01010">哲学</button>
+            <button type="button" class="tag" icode="A01010">倫理学</button>
+            <button type="button" class="tag" icode="A01020">中国哲学</button>
+            <button type="button" class="tag" icode="A01020">印度哲学</button>
+            <button type="button" class="tag" icode="A01020">仏教学</button>
+            <button type="button" class="tag" icode="A01030">宗教学</button>
+            <button type="button" class="tag" icode="A01040">思想史</button>
+            <button type="button" class="tag" icode="A01050">美学</button>
+            <button type="button" class="tag" icode="A01050">芸術論</button>
+            <button type="button" class="tag" icode="A01060">美術史</button>
+            <button type="button" class="tag" icode="A01070">芸術実践論</button>
+            <button type="button" class="tag" icode="A01080">科学社会学</button>
+            <button type="button" class="tag" icode="A01080">科学技術史</button>
+            <button type="button" class="tag" icode="A02010">日本文学</button>
+            <button type="button" class="tag" icode="A02020">中国文学</button>
+            <button type="button" class="tag" icode="A02030">英文学</button>
+            <button type="button" class="tag" icode="A02030">英語圏文学</button>
+            <button type="button" class="tag" icode="A02040">ヨーロッパ文学</button>
+            <button type="button" class="tag" icode="A02050">文学一般</button>
+            <button type="button" class="tag" icode="A02060">言語学</button>
+            <button type="button" class="tag" icode="A02070">日本語学</button>
+            <button type="button" class="tag" icode="A02080">英語学</button>
+            <button type="button" class="tag" icode="A02090">日本語教育</button>
+            <button type="button" class="tag" icode="A02100">外国語教育</button>
+            <button type="button" class="tag" icode="A03010">史学一般</button>
+            <button type="button" class="tag" icode="A03020">日本史</button>
+            <button type="button" class="tag" icode="A03030">アジア史</button>
+            <button type="button" class="tag" icode="A03030">アフリカ史</button>
+            <button type="button" class="tag" icode="A03040">ヨーロッパ史</button>
+            <button type="button" class="tag" icode="A03040">アメリカ史</button>
+            <button type="button" class="tag" icode="A03050">考古学</button>
+            <button type="button" class="tag" icode="A03060">文化財科学</button>
+            <button type="button" class="tag" icode="A03070">博物館学</button>
+            <button type="button" class="tag" icode="A04010">地理学</button>
+            <button type="button" class="tag" icode="A04020">人文地理学</button>
+            <button type="button" class="tag" icode="A04030">文化人類学</button>
+            <button type="button" class="tag" icode="A04030">民俗学</button>
+            <button type="button" class="tag" icode="A05010">基礎法学</button>
+            <button type="button" class="tag" icode="A05020">公法学</button>
+            <button type="button" class="tag" icode="A05030">国際法学</button>
+            <button type="button" class="tag" icode="A05040">社会法学</button>
+            <button type="button" class="tag" icode="A05050">刑事法学</button>
+            <button type="button" class="tag" icode="A05060">民事法学</button>
+            <button type="button" class="tag" icode="A05070">新領域法学</button>
+            <button type="button" class="tag" icode="A06010">政治学</button>
+            <button type="button" class="tag" icode="A06020">国際関係論</button>
+            <button type="button" class="tag" icode="A07010">理論経済学</button>
+            <button type="button" class="tag" icode="A07020">経済学説</button>
+            <button type="button" class="tag" icode="A07020">経済思想</button>
+            <button type="button" class="tag" icode="A07030">経済統計</button>
+            <button type="button" class="tag" icode="A07040">経済政策</button>
+            <button type="button" class="tag" icode="A07050">公共経済</button>
+            <button type="button" class="tag" icode="A07050">労働経済</button>
+            <button type="button" class="tag" icode="A07060">金融</button>
+            <button type="button" class="tag" icode="A07060">ファイナンス</button>
+            <button type="button" class="tag" icode="A07070">経済史</button>
+            <button type="button" class="tag" icode="A07080">経営学</button>
+            <button type="button" class="tag" icode="A07090">商学</button>
+            <button type="button" class="tag" icode="A07100">会計学</button>
+            <button type="button" class="tag" icode="A08010">社会学</button>
+            <button type="button" class="tag" icode="A08020">社会福祉学</button>
+            <button type="button" class="tag" icode="A08030">家政学</button>
+            <button type="button" class="tag" icode="A08030">生活科学</button>
+            <button type="button" class="tag" icode="A09010">教育学</button>
+            <button type="button" class="tag" icode="A09020">教育社会学</button>
+            <button type="button" class="tag" icode="A09030">子ども学</button>
+            <button type="button" class="tag" icode="A09030">保育学</button>
+            <button type="button" class="tag" icode="A09040">教科教育学</button>
+            <button type="button" class="tag" icode="A09040">初等中等教育学</button>
+            <button type="button" class="tag" icode="A09050">高等教育学</button>
+            <button type="button" class="tag" icode="A09060">特別支援教育</button>
+            <button type="button" class="tag" icode="A09070">教育工学</button>
+            <button type="button" class="tag" icode="A09080">科学教育</button>
+            <button type="button" class="tag" icode="A10010">社会心理学</button>
+            <button type="button" class="tag" icode="A10020">教育心理学</button>
+            <button type="button" class="tag" icode="A10030">臨床心理学</button>
+            <button type="button" class="tag" icode="A10040">実験心理学</button>
+            <button type="button" class="tag" icode="A41010">食料農業経済</button>
+            <button type="button" class="tag" icode="A80010">地域研究</button>
+            <button type="button" class="tag" icode="A80020">観光学</button>
+            <button type="button" class="tag" icode="A80030">ジェンダー</button>
+            <button type="button" class="tag" icode="A90010">デザイン学</button>
+            <button type="button" class="tag" icode="A90020">図書館情報学</button>
+            <button type="button" class="tag" icode="A90020">人文社会情報学</button>
+            <button type="button" class="tag" icode="A90030">認知科学</button>
+        </div>
+
+        <div id="tags-NS" class="tag-container">
+            <button type="button" class="tag" icode="A11010">代数学</button>
+            <button type="button" class="tag" icode="A11020">幾何学</button>
+            <button type="button" class="tag" icode="A12010">基礎解析学</button>
+            <button type="button" class="tag" icode="A12020">数理解析学</button>
+            <button type="button" class="tag" icode="A12030">数学基礎</button>
+            <button type="button" class="tag" icode="A12040">応用数学</button>
+            <button type="button" class="tag" icode="A12040">統計数学</button>
+            <button type="button" class="tag" icode="A13010">数理物理</button>
+            <button type="button" class="tag" icode="A13010">物性基礎</button>
+            <button type="button" class="tag" icode="A13020">半導体</button>
+            <button type="button" class="tag" icode="A13020">光物性</button>
+            <button type="button" class="tag" icode="A13020">原子物理</button>
+            <button type="button" class="tag" icode="A13030">磁性</button>
+            <button type="button" class="tag" icode="A13030">超電導</button>
+            <button type="button" class="tag" icode="A13030">強相関系</button>
+            <button type="button" class="tag" icode="A13040">生物物理</button>
+            <button type="button" class="tag" icode="A13040">化学物理</button>
+            <button type="button" class="tag" icode="A13040">ソフトマターの物理</button>
+            <button type="button" class="tag" icode="A15010">素粒子</button>
+            <button type="button" class="tag" icode="A15010">原子核</button>
+            <button type="button" class="tag" icode="A15010">宇宙線</button>
+            <button type="button" class="tag" icode="A15010">宇宙物理に関する理論</button>
+            <button type="button" class="tag" icode="A15020">素粒子</button>
+            <button type="button" class="tag" icode="A15020">原子核</button>
+            <button type="button" class="tag" icode="A15020">宇宙線</button>
+            <button type="button" class="tag" icode="A15020">宇宙物理に関する実験</button>
+            <button type="button" class="tag" icode="A16010">天文学</button>
+            <button type="button" class="tag" icode="A17010">宇宙惑星科学</button>
+            <button type="button" class="tag" icode="A17020">大気水圏科学</button>
+            <button type="button" class="tag" icode="A17030">地球人間圏科学</button>
+            <button type="button" class="tag" icode="A17040">固体地球科学</button>
+            <button type="button" class="tag" icode="A17050">地球生命科学</button>
+        </div>
+
+        <div id="tags-Others" class="tag-container">
+            <button type="button" class="tag" icode="A99999">その他</button>
+        </div>
+
+        <!-- 他のタグコンテナも同様に -->
+        
+        <input type="hidden" id="selected-iname" name="iname" value="{{ user.iname }}">
+        <input type="hidden" id="selected-icode" name="icode" value="{{ user.icode }}">
+        
+        <div class="form-group">
+            <label for="interest_text">興味の詳細</label><br>
+            <textarea id="interest_text" name="interest_text" rows="25" cols="70">{{ user.interest_text }}</textarea>
+        </div>
+        
         <button type="submit">更新</button>
     </form>
     <a href="{{ url_for('list_users') }}">一覧に戻る</a>
+    <script>
+        $(document).ready(function() {
+            let selectedIcodes = new Set();
+            let selectedInames = new Set();
+            let selectedDcode = "{{ user.dcode }}";
+            let selectedDname = "{{ user.dname }}";
+
+            console.log("初期値: dcode=" + selectedDcode + ", dname=" + selectedDname);
+
+            // 大分類の初期選択状態を設定
+            $(".field-button").each(function() {
+                if ($(this).attr("dcode") === selectedDcode) {
+                    $(this).addClass("selected");
+                    let field = $(this).data("field");
+                    $("#tags-" + field).show();
+                    console.log("大分類を選択: " + $(this).text() + " (field=" + field + ")");
+                }
+            });
+
+            // 小分類の初期選択状態を設定
+            let icodeArray = "{{ user.icode }}".split(", ");
+            let inameArray = "{{ user.iname }}".split(", ");
+
+            console.log("小分類コード: " + icodeArray);
+            console.log("小分類名: " + inameArray);
+
+            // 小分類コードと名前をセットに追加
+            for (let i = 0; i < icodeArray.length; i++) {
+                if (icodeArray[i] && icodeArray[i].trim() !== "") {
+                    selectedIcodes.add(icodeArray[i].trim());
+                    console.log("小分類コード追加: " + icodeArray[i].trim());
+                }
+            }
+
+            for (let i = 0; i < inameArray.length; i++) {
+                if (inameArray[i] && inameArray[i].trim() !== "") {
+                    selectedInames.add(inameArray[i].trim());
+                    console.log("小分類名追加: " + inameArray[i].trim());
+                }
+            }
+
+            // 小分類の選択状態を視覚的に反映
+            $(".tag").each(function() {
+                let icode = $(this).attr("icode");
+                let iname = $(this).text().trim();
+
+                if (selectedIcodes.has(icode) || selectedInames.has(iname)) {
+                    $(this).addClass("selected");
+                    console.log("タグを選択状態に設定: " + iname + " (code=" + icode + ")");
+                }
+            });
+
+            // 隠しフィールドに初期値を設定
+            $("#selected-dname").val(selectedDname);
+            $("#selected-dcode").val(selectedDcode);
+            $("#selected-iname").val(Array.from(selectedInames).join(", "));
+            $("#selected-icode").val(Array.from(selectedIcodes).join(", "));
+
+            // 大分類ボタンのクリック処理（1つだけ選択）
+            $(".field-button").click(function() {
+                let field = $(this).data("field");
+
+                // すべてのボタンの選択状態を解除し、クリックしたボタンだけ有効化
+                $(".field-button").removeClass("selected");
+                $(this).addClass("selected");
+
+                // すべてのタグコンテナを非表示にし、選択した分野のタグだけ表示
+                $(".tag-container").hide();
+                $("#tags-" + field).show();
+
+                selectedDcode = $(this).attr("dcode");
+                selectedDname = $(this).text().trim();
+                $("#selected-dname").val(selectedDname);
+                $("#selected-dcode").val(selectedDcode);
+
+                console.log("大分類選択: " + selectedDname + " (code=" + selectedDcode + ")");
+            });
+
+            // 小分類タグの選択処理
+            $(".tag").click(function() {
+                let icode = $(this).attr("icode");
+                let iname = $(this).text().trim();
+
+                if ($(this).hasClass("selected")) {
+                    // 選択解除
+                    selectedInames.delete(iname);
+                    selectedIcodes.delete(icode);
+                    $(this).removeClass("selected");
+                    console.log("タグ選択解除: " + iname);
+                } else {
+                    // 選択
+                    selectedInames.add(iname);
+                    selectedIcodes.add(icode);
+                    $(this).addClass("selected");
+                    console.log("タグ選択: " + iname);
+                }
+
+                $("#selected-iname").val(Array.from(selectedInames).join(", "));
+                $("#selected-icode").val(Array.from(selectedIcodes).join(", "));
+
+                console.log("選択された小分類: " + $("#selected-iname").val());
+                console.log("選択された小分類コード: " + $("#selected-icode").val());
+            });
+
+            // フォーム送信前のバリデーション
+            $("#register-form").submit(function(event) {
+                if (!selectedDname) {
+                    event.preventDefault(); // フォーム送信を中止
+                    alert("大分類を選択してください！");
+                    return false;
+                }
+                if (selectedIcodes.size === 0) {
+                 event.preventDefault(); // フォーム送信を中止
+                    alert("少なくとも1つの小分類を選択してください！");
+                    return false;
+                }
+
+                // バリデーションが通ったら通常のフォーム送信を許可
+                console.log("フォーム送信: dname=" + $("#selected-dname").val() + ", iname=" + $("#selected-iname").val());
+                return true;
+
+                var formData = {
+                    name: $("#name").val(),
+                    gender: $("input[name='gender']:checked").val(),
+                    birthday: $("#birthday").val(),
+                    email: $("#email").val(),
+                    password: $("#password").val(),
+                    phone_number: $("#phone_number").val(),
+                    school: $("#school").val(),
+                    dname: $("#selected-dname").val(),
+                    iname: $("#selected-iname").val(),
+                    dcode: $("#selected-dcode").val(),
+                    icode: $("#selected-icode").val(),
+                    interest_text: $("#interest-text").val()
+                };
+
+                console.log("送信データ:", formData); // デバッグ用（送信時に確認）
+
+                $.post("/user_register", formData, function(response) {
+                    $("#response-message").text(response.message);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
