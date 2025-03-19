@@ -47,18 +47,28 @@
         margin-top: 10px;
         }
     </style>
+    
 </head>
 <body>
     <h2>ユーザー登録</h2>
+    <!-- フォームの前に追加(Flashのメッセージを表示) -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
     <form method = "POST" id="register-form">
         <!-- <p>名前</p> -->
-        <label for="name">名前:</label>
+        <label for="name">名前：</label>
         <input type="text" id="name" name="name" placeholder="田中 太郎" required><br>
         <!-- <label for="first_name">名:</label>
         <input type="text" id="first_name" name="first_name" placeholder="太郎" required><br> -->
 
         <label for="gender">性別：</label><br>
-
         <input type="radio" id="male" name="gender" value="男性" required>
         <label for="male">男性</label>
         <input type="radio" id="female" name="gender" value="女性" required>
@@ -69,6 +79,11 @@
         <label>生年月日：<input type="date" id="birthday" name="birthday" required></label><br>
 
         <label>メールアドレス：<input type="text" id="email" name="email" required></label><br>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">パスワード</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
 
         <label>電話番号：<input type="text" id="phone_number" name="phone_number" placeholder ="ハイフンなし"required></label><br>
 
@@ -589,25 +604,28 @@
                 console.log("選択された小分類:", Array.from(selectedInames));
             });
 
-            // フォーム送信時にのみデータを送信
+            // フォーム送信前のバリデーション
             $("#register-form").submit(function(event) {
-                event.preventDefault(); // デフォルトのフォーム送信を無効化
-                var interestText = $("#interest-text").val();
-
                 if (!selectedDname) {
+                    event.preventDefault(); // フォーム送信を中止
                     alert("大分類を選択してください！");
-                    return;
+                    return false;
                 }
                 if (selectedIcodes.size === 0) {
+                 event.preventDefault(); // フォーム送信を中止
                     alert("少なくとも1つの小分類を選択してください！");
-                    return;
+                    return false;
                 }
+
+                // バリデーションが通ったら通常のフォーム送信を許可
+                return true;
 
                 var formData = {
                     name: $("#name").val(),
                     gender: $("input[name='gender']:checked").val(),
                     birthday: $("#birthday").val(),
                     email: $("#email").val(),
+                    password: $("#password").val(),
                     phone_number: $("#phone_number").val(),
                     school: $("#school").val(),
                     dname: $("#selected-dname").val(),
