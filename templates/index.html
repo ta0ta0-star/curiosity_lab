@@ -46,7 +46,63 @@
         .tag-input-container{
         margin-top: 10px;
         }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #394d61;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .navbar-brand {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+        }
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            color: #3498db;
+        }
     </style>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">研究室マッチング</a>
+            <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"> -->
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if g.user %}
+                        <span class="nav-link">{{ g.user['name'] }}さん</span>
+                        <a class="nav-link" href="{{ url_for('profile') }}">マイページ</a>
+                    {% if g.user.id == 1 %}
+                        <a class="nav-link" href="{{ url_for('list_users') }}">ユーザー一覧</a>
+                        <!-- <a class="nav-link" href="{{ url_for('list_labs') }}">研究室一覧</a>
+                        <a class="nav-link" href="{{ url_for('list_curiosities') }}">研究室の興味一覧</a>
+                        <a class="nav-link" href="{{ url_for('list_user_curiosities') }}">ユーザーの興味一覧</a>
+                        <a class="nav-link" href="{{ url_for('list_matching') }}">マッチング一覧</a>
+                        <a class="nav-link" href="{{ url_for('list_matching_result') }}">マッチング結果一覧</a>
+                        <a class="nav-link" href="{{ url_for('list_matching_result_detail') }}">マッチング結果詳細一覧</a> -->
+                    {% endif %}
+                        <a class="nav-link" href="{{ url_for('logout') }}">ログアウト</a>
+                    {% else %}
+                        <a class="nav-link" href="{{ url_for('login') }}">ログイン</a>
+                        <a class="nav-link" href="{{ url_for('register_user') }}">新規登録</a>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
 </head>
 <body>
     <h2>研究室マッチング</h2>
