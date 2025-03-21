@@ -19,6 +19,9 @@ import pickle
 import sys
 sys.path.append('path_to_the_directory_containing_my_module')
 from my_module import get_text_vector
+from concurrent.futures import ThreadPoolExecutor
+# import Mecab
+from sentence_transformers import SentenceTransformer, util
 
 
 
@@ -348,146 +351,108 @@ def delete(id):
 def load():
     return render_template('load.html')
 
-
 # 研究者データのCSV
 RESEARCHER_CSV = "researcher_data1.csv"
 VECTOR_CACHE_FILE = "vector_cache.pkl"
 
-# 研究者データのCSV
-RESEARCHER_CSV = "researcher_data1.csv"
-VECTOR_CACHE_FILE = "vector_cache.pkl"
+CACHE_VERSION = "1.1"  # キャッシュのバージョン（コードを変更したら更新する）
 
-def load_fasttext_models():
-    # 日本語モデルをロード
-    ft_model_ja = fasttext.load_model("cc.ja.300.bin")
-    # 英語モデルをロード
-    ft_model_en = fasttext.load_model("cc.en.300.bin")
-    return ft_model_ja, ft_model_en
+def load_xlmr_model():
+    print("XLM-R モデルをロード中...")
+    # xlm-roberta-base is a good multilingual model that supports Japanese and English
+    model = SentenceTransformer('xlm-roberta-base')
+    print("✅ XLM-R モデルのロード成功")
+    return model
 
-# 研究者データの事前処理とベクトル計算（キャッシュ機能付き）
+# テキストをXLM-Rでベクトル化
+def get_text_vector(text, model=None):
+    if model is None:
+        # Lazy loading of the model if not provided
+        model = load_xlmr_model()
+
+    if not text or not isinstance(text, str):
+        # Return zero vector of appropriate size for empty text
+        return np.zeros(768)  # XLM-R base model has 768 dimensions
+
+    # XLM-R can handle raw text without tokenization
+    return model.encode(text)
+
+# 研究者データの処理とベクトル化
 def preprocess_and_vectorize_researchers():
-    # キャッシュファイルが存在する場合はロード
+    # Check for cache
     if os.path.exists(VECTOR_CACHE_FILE):
-        try:
-            print("キャッシュからベクトルをロード中...")
-            with open(VECTOR_CACHE_FILE, 'rb') as f:
-                cache_data = pickle.load(f)
-                # キャッシュデータの検証
-                if 'researchers_df' in cache_data and 'researcher_vectors' in cache_data:
-                    print("キャッシュからのロード成功")
-                    return cache_data['researchers_df'], cache_data['researcher_vectors']
-        except Exception as e:
-            print(f"キャッシュロードエラー: {e}")
+        with open(VECTOR_CACHE_FILE, 'rb') as f:
+            cache_data = pickle.load(f)
+            if cache_data.get('version') == CACHE_VERSION:
+                return cache_data['df'], cache_data['vectors']
+
+    # Load researcher data
+    df = pd.read_csv(RESEARCHER_CSV, encoding="utf-8")
+    df.fillna('', inplace=True)
     
-    print("研究者データを前処理中...")
-    df = pd.read_csv(RESEARCHER_CSV)
-    
-    # 前処理 - 欠損値を空文字列に置き換え（一括処理）
-    text_columns = ['name', 'research_experience', 'association_memberships', 'research_areas', 'research_interests', 'published_papers']
-    for col in text_columns:
-        if col in df.columns:
-            df[col] = df[col].fillna('')
-        else:
-            df[col] = ''  # カラムが存在しない場合は空の列を作成
-    
-    # 研究分野の分類情報を抽出
-    df['extracted_areas'] = df['research_areas'].apply(
-        lambda x: parse_research_area(x) if isinstance(x, str) else []
-    )
-    
-    # 研究者のテキストデータを結合（ベクトル化のため）
+    # Combine text fields
     df["combined_text"] = df.apply(
-        lambda row: f"{row['name']} {row['research_experience']} {row['research_areas']} {row['research_interests']} {row['published_papers']}", 
+        lambda row: f"{row['name']} {row['research_areas']} {row['research_interests']} {row['published_papers']}",
         axis=1
     )
     
-    # FastTextモデルをロード
-    ft_model_ja, ft_model_en = load_fasttext_models()
+    # Load XLM-R model
+    model = load_xlmr_model()
     
-    # 研究者データのベクトルを一括計算（並列処理可能）
     print("研究者ベクトルを計算中...")
+    # Vectorize all researcher texts
+    vectors = []
+    batch_size = 32  # Process in batches to avoid memory issues
     
-    # 並列処理のためにPandasのapply関数を使用
-    from concurrent.futures import ThreadPoolExecutor
+    for i in range(0, len(df), batch_size):
+        batch_texts = df['combined_text'].iloc[i:i+batch_size].tolist()
+        batch_vectors = model.encode(batch_texts)
+        vectors.extend(batch_vectors)
     
-    def process_text(text):
-        return get_text_vector(text, ft_model_ja, ft_model_en)
+    vectors = np.array(vectors)
     
-    # ThreadPoolExecutorを使用して並列処理
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        researcher_vectors = list(executor.map(process_text, df['combined_text']))
-    
-    # NumPy配列に変換して高速化
-    researcher_vectors = np.array(researcher_vectors)
-    
-    # キャッシュに保存
-    cache_data = {
-        'researchers_df': df,
-        'researcher_vectors': researcher_vectors
-    }
-    
+    # Save to cache
     with open(VECTOR_CACHE_FILE, 'wb') as f:
-        pickle.dump(cache_data, f)
+        pickle.dump({'version': CACHE_VERSION, 'df': df, 'vectors': vectors}, f)
     
-    print(f"研究者データ: {len(df)}件のベクトル化完了")
-    return df, researcher_vectors
+    return df, vectors
 
-# 研究者データとのマッチング処理（高速化版）
+# マッチング処理
 def match_researchers(user_interests):
     try:
-        # 研究者データとベクトルをロード（キャッシュから）
+        # Load researcher data and vectors
         researchers_df, researcher_vectors = preprocess_and_vectorize_researchers()
         
-        # FastTextモデルをロード
-        ft_model_ja, ft_model_en = load_fasttext_models()
-        
-        # ユーザーの興味・関心情報を取得
+        # Get user interests
         user_dname = user_interests.get('dname', '')
         user_iname = user_interests.get('iname', '')
         user_interest_text = user_interests.get('interest_text', '')
         
-        # ユーザーの興味・関心をベクトル化
+        # Combine user text
         user_text = f"{user_dname} {user_iname} {user_interest_text}"
-        user_vector = get_text_vector(user_text, ft_model_ja, ft_model_en)
+        
+        # Load model and vectorize user text
+        model = load_xlmr_model()
+        user_vector = model.encode(user_text)
         
         print(f"ユーザーテキスト: {user_text}")
         
-        # NumPyを使った高速なコサイン類似度計算
-        # 1. ゼロベクトルのインデックスを特定
-        zero_vectors = np.all(researcher_vectors == 0, axis=1)
+        # Calculate cosine similarities
+        # Using sentence-transformers util for cosine similarity
+        similarities = util.pytorch_cos_sim(
+            torch.tensor([user_vector]),
+            torch.tensor(researcher_vectors)
+        )[0].numpy()
         
-        # 2. ユーザーベクトルがゼロベクトルかチェック
-        if np.all(user_vector == 0):
-            similarities = np.zeros(len(researcher_vectors))
-        else:
-            # 3. 非ゼロベクトルに対してコサイン類似度を計算
-            # ドット積を計算
-            dot_products = np.dot(researcher_vectors, user_vector)
-            
-            # ノルムを計算
-            researcher_norms = np.linalg.norm(researcher_vectors, axis=1)
-            user_norm = np.linalg.norm(user_vector)
-            
-            # コサイン類似度を計算（ゼロ除算を避ける）
-            with np.errstate(divide='ignore', invalid='ignore'):
-                similarities = dot_products / (researcher_norms * user_norm)
-            
-            # NaNや無限大を0に置き換え
-            similarities = np.nan_to_num(similarities)
-            
-            # ゼロベクトルの類似度を0に設定
-            similarities[zero_vectors] = 0
-        
-        # 類似度をDataFrameに追加
+        # Add similarities to dataframe
         researchers_df['similarity'] = similarities
         
-        # 類似度の統計情報を出力
-        print(f"類似度の最大値(重みづけなし): {np.max(similarities)}")
-        print(f"類似度の最小値(重みづけなし): {np.min(similarities)}")
-        print(f"類似度の平均値(重みづけなし): {np.mean(similarities)}")
+        # Extract research areas
+        researchers_df['extracted_areas'] = researchers_df['research_areas'].apply(
+            lambda x: parse_research_area(x) if isinstance(x, str) else []
+        )
         
-        # 小分類の一致度に基づいて類似度を調整（ベクトル化操作）
-        # 1. 大分類と小分類の一致を確認するための関数
+        # Check for category matches
         def check_matches(row):
             areas = row['extracted_areas']
             subcategory_match = False
@@ -502,10 +467,9 @@ def match_researchers(user_interests):
             
             return pd.Series([subcategory_match, major_category_match])
         
-        # 2. 一括で一致チェック
         researchers_df[['subcategory_match', 'major_category_match']] = researchers_df.apply(check_matches, axis=1)
         
-        # 3. 条件に基づいて類似度を調整（ベクトル化操作）
+        # Adjust similarities based on category matches
         conditions = [
             researchers_df['subcategory_match'],
             researchers_df['major_category_match'] & ~researchers_df['subcategory_match'],
@@ -513,30 +477,29 @@ def match_researchers(user_interests):
         ]
         
         choices = [
-            researchers_df['similarity'] * 1.5,  # 小分類一致
-            researchers_df['similarity'] * 0.8,  # 大分類のみ一致
-            researchers_df['similarity'] * 0.5   # どちらも不一致
+            researchers_df['similarity'] * 1.5,  # Subcategory match
+            researchers_df['similarity'] * 0.8,  # Only major category match
+            researchers_df['similarity'] * 0.5   # No match
         ]
         
         researchers_df['adjusted_similarity'] = np.select(conditions, choices, default=researchers_df['similarity'])
         
-        # 調整後の類似度でソート
+        # Sort by adjusted similarity
         researchers_df = researchers_df.sort_values('adjusted_similarity', ascending=False)
         
-        # 上位10件の研究者データを返す
+        # Return top 10 researchers
         top_researchers = []
         for _, row in researchers_df.head(10).iterrows():
             researcher = row.to_dict()
-            researcher['similarity'] = researcher['adjusted_similarity'] * 100  # パーセンテージに変換
+            researcher['similarity'] = float(researcher['adjusted_similarity'] * 100)  # Convert to percentage
             top_researchers.append(researcher)
-        
+            
         return top_researchers
     
     except Exception as e:
         print(f"マッチング処理中にエラーが発生しました: {e}")
         import traceback
         traceback.print_exc()
-        # エラーが発生した場合は空のリストを返す
         return []
 
 # マッチング結果の表示
@@ -568,6 +531,16 @@ def profile():
     return render_template('profile.html', user=user)
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--regenerate-cache', action='store_true', 
+                        help='キャッシュを強制的に再生成します')
+    args = parser.parse_args()
+
+    if args.regenerate_cache and os.path.exists(VECTOR_CACHE_FILE):
+        os.remove(VECTOR_CACHE_FILE)
+        print("キャッシュを削除しました。再生成します。")
+
     if not os.path.exists(DATABASE_RE):
         init_db()
     app.run(debug=True)
