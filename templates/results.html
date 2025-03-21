@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マッチング結果</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .researcher-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .researcher-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .researcher-name a {
+            text-decoration: none;
+            color: #3498db;
+        }
+        .researcher-name a:hover {
+            text-decoration: underline;
+        }
+        .researcher-title {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        .researcher-info {
+            margin-bottom: 10px;
+            color: #7f8c8d;
+        }
+        .researcher-affiliation {
+            font-style: italic;
+            color: #34495e;
+            margin-bottom: 8px;
+        }
+        .researcher-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .match-score {
+            float: right;
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .keywords {
+            margin-top: 10px;
+            color: #2980b9;
+        }
+        .abstract {
+            margin-top: 10px;
+            color: #333;
+        }
+        .user-interests {
+            background-color: #eaf2f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #394d61;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .navbar-brand {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .navbar-nav {
+            display: flex;
+            gap: 15px;
+        }
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            color: #3498db;
+        }
+        .subcategory-match {
+            border: 2px solid #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+
+        .major-match {
+            border: 1px solid #2196F3;
+            background-color: rgba(33, 150, 243, 0.05);
+        }
+
+        .match-info {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a class="navbar-brand" href="/">研究室マッチング</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">ホーム</a>
+                <a class="nav-link" href="/profile">マイページ</a>
+                <a class="nav-link" href="/logout">ログアウト</a>
+            </div>
+        </nav>
+
+        <h1>マッチング結果</h1>
+        
+        <div class="user-interests">
+            <h3>あなたの興味・関心</h3>
+            <p><strong>分野:</strong> {{ interests.dname }}</p>
+            <p><strong>詳細分野:</strong> {{ interests.iname }}</p>
+            {% if interests.interest_text %}
+            <p><strong>詳細説明:</strong> {{ interests.interest_text }}</p>
+            {% endif %}
+        </div>
+
+        <h2>あなたにおすすめの研究者</h2>
+
+        {% if researchers %}
+            {% for researcher in researchers %}
+            <div class="researcher-card {% if researcher.subcategory_match %}subcategory-match{% elif researcher.major_category_match %}major-match{% endif %}">
+                <div class="researcher-name">
+                    <!-- researchmapへのリンクを追加 -->
+                    <a href="https://researchmap.jp/{{ researcher.researchmap_id if researcher.researchmap_id else researcher.name }}" target="_blank">
+                        {{ researcher.name }}
+                    </a>
+                </div>
+                <p>マッチ度: {{ "%.1f"|format(researcher.similarity) }}%</p>
+                {% if researcher.subcategory_match %}
+                <p class="match-info"><strong>小分類一致!</strong></p>
+                {% elif researcher.major_category_match %}
+                <p class="match-info">大分類一致</p>
+                {% endif %}
+
+                <!-- 所属情報を表示 -->
+                {% if researcher.affiliation %}
+                <div class="researcher-affiliation">
+                    {{ researcher.affiliation }}
+                </div>
+                {% endif %}
+
+                <!-- 研究タグを表示 -->
+                {% if researcher.research_areas %}
+                <div class="researcher-tags">
+                    {% for area in researcher.research_areas.split(',') %}
+                        <span class="tag">{{ area.strip() }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="researcher-info">
+                    <p><strong>研究経験:</strong> {{ researcher.research_experience }}</p>
+                    <p><strong>所属学会:</strong> {{ researcher.association_memberships }}</p>
+                    <p><strong>研究分野:</strong> {{ researcher.research_areas }}</p>
+                    <p><strong>研究興味:</strong> {{ researcher.research_interests }}</p>
+                    <p><strong>発表論文:</strong> {{ researcher.published_papers }}</p>
+                </div>
+
+                <div class="similarity-score">
+                    マッチ度: {{ "%.1f"|format(researcher.similarity) }}%
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>マッチする研究者が見つかりませんでした。</p>
+        {% endif %}
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/" style="display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">トップページに戻る</a>
+        </div>
+    </div>
+</body>
+</html>
